@@ -102,7 +102,7 @@ end
 #
 #===============================================================================
 class PokemonSummary_Scene
-  NB_PAGES = 5
+  NB_PAGES = 6
 
   def pbUpdate
     pbUpdateSpriteHash(@sprites)
@@ -346,6 +346,7 @@ class PokemonSummary_Scene
                 _INTL("TRAINER MEMO"),
                 _INTL("SKILLS"),
                 _INTL("MOVES"),
+                _INTL("BATTLE STATS"),
                 _INTL("MOVES")][page - 1]
     textpos = [
       [pagename, 26, 10, 0, base, shadow],
@@ -381,6 +382,8 @@ class PokemonSummary_Scene
       drawPageFour
     when 5 then
       drawPageFive
+    when 6 then
+      drawPageSix
     end
   end
 
@@ -904,6 +907,25 @@ class PokemonSummary_Scene
   end
 
   def drawPageFive
+    overlay = @sprites["overlay"].bitmap
+    @sprites["uparrow"].visible = false
+    @sprites["downarrow"].visible = false
+    red    = Color.new(248, 56, 32)
+    redshadow = Color.new(224, 152, 144)
+    gray   = Color.new(64, 64, 64)
+    grayshadow = Color.new(176, 176, 176)
+    fainted = @pokemon.battle_stat(:foes_fainted)
+    damage  = @pokemon.battle_stat(:damage_dealt)
+    textpos = [
+      [_INTL("PKMN fainted:"), 234, 90,  0, red,  redshadow],
+      [fainted.to_s,           450, 90,  1, gray, grayshadow],
+      [_INTL("Damage done:"),  234, 130, 0, red,  redshadow],
+      [damage.to_s,            450, 130, 1, gray, grayshadow],
+    ]
+    pbDrawTextPositions(overlay, textpos)
+  end
+
+  def drawPageSix
     return if !$Trainer.has_pokedex
     $Trainer.pokedex.register_last_seen(@pokemon)
     pbFadeOutIn {
@@ -913,7 +935,7 @@ class PokemonSummary_Scene
     }
     pbChangePokemon
     @page -= 1
-    drawPageFour #stay on the same page
+    drawPageFive
   end
 
   # def drawPageFive
@@ -1415,11 +1437,9 @@ class PokemonSummary_Scene
           pbPlayDecisionSE
           pbMoveSelection
           dorefresh = true
-        elsif @page == 5
+        elsif @page == 6
           @page -= 1
           pbPlayDecisionSE
-          #pbRibbonSelection
-          #dorefresh = true
         elsif !@inbattle
           pbPlayDecisionSE
           dorefresh = pbOptions
@@ -1444,20 +1464,20 @@ class PokemonSummary_Scene
         oldpage = @page
         @page -= 1
         @page = 1 if @page < 1
-        @page = 5 if @page > 5
+        @page = 6 if @page > 6
         if @page != oldpage # Move to next page
           pbSEPlay("GUI summary change page")
           @ribbonOffset = 0
           dorefresh = true
         end
       elsif Input.trigger?(Input::RIGHT) && !@pokemon.egg?
-        if @page == 4 && !$Trainer.has_pokedex
+        if @page == 5 && !$Trainer.has_pokedex
           pbSEPlay("GUI sel buzzer")
         else
           oldpage = @page
           @page += 1
           @page = 1 if @page < 1
-          @page = 5 if @page > 5
+          @page = 6 if @page > 6
           if @page != oldpage # Move to next page
             pbSEPlay("GUI summary change page")
             @ribbonOffset = 0

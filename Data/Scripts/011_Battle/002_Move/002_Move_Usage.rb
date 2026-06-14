@@ -345,6 +345,10 @@ class PokeBattle_Move
     if target.opposes?(user)
       target.lastHPLostFromFoe = damage              # For Metal Burst
       target.lastFoeAttacker.push(user.index)        # For Metal Burst
+      if damage > 0 && user.pokemon && user.pokemon.is_a?(Pokemon)
+        user.pokemon.increment_battle_stat(:damage_dealt, damage)
+        user.pokemon.increment_battle_stat(:foes_fainted) if target.fainted?
+      end
     end
   end
 end
