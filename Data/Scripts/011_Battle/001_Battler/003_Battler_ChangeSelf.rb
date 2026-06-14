@@ -79,6 +79,25 @@ class PokeBattle_Battler
     pbAbilitiesOnFainting
     # Check for end of primordial weather
     @battle.pbEndPrimordialWeather
+    # Fallback kill tracking for non-move deaths (burn, poison, weather, etc.)
+    # Only runs if a direct-hit kill didn't already record this data.
+    begin
+      if @pokemon && @pokemon.respond_to?(:killed_by_data) &&
+         @pokemon.respond_to?(:record_killed_by) && @pokemon.killed_by_data.nil?
+        last_foe_idx = (@lastFoeAttacker || []).last
+        if !last_foe_idx.nil?
+          attacker = (@battle.battlers[last_foe_idx] rescue nil)
+          if attacker && attacker.pokemon
+            trainer_name   = (@battle.pbGetOwnerName(last_foe_idx) rescue nil)
+            pokemon_name   = (attacker.pokemon.name rescue nil)
+            killer_species = (attacker.pokemon.species rescue nil)
+            @pokemon.record_killed_by(trainer: trainer_name, pokemon: pokemon_name,
+                                      move: nil, species: killer_species)
+          end
+        end
+      end
+    rescue
+    end
   end
 
   def updateSpirits()

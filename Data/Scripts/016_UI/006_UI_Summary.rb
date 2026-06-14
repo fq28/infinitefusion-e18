@@ -910,19 +910,54 @@ class PokemonSummary_Scene
     overlay = @sprites["overlay"].bitmap
     @sprites["uparrow"].visible = false
     @sprites["downarrow"].visible = false
-    red    = Color.new(248, 56, 32)
-    redshadow = Color.new(224, 152, 144)
-    gray   = Color.new(64, 64, 64)
+    red        = Color.new(248, 56, 32)
+    redshadow  = Color.new(224, 152, 144)
+    gray       = Color.new(64, 64, 64)
     grayshadow = Color.new(176, 176, 176)
-    fainted = @pokemon.battle_stat(:foes_fainted)
-    damage  = @pokemon.battle_stat(:damage_dealt)
+    # Draw ghost sprite of killer Pokémon behind everything else
+    begin
+      killed_by = @pokemon.killed_by_data rescue nil
+      if killed_by && killed_by[:species]
+        loader = BattleSpriteLoader.new
+        pif_sprite = loader.get_pif_sprite_from_species(killed_by[:species])
+        if pif_sprite
+          anim_bmp = loader.load_pif_sprite_directly(pif_sprite)
+          if anim_bmp && anim_bmp.bitmap
+            bmp = anim_bmp.bitmap
+            # Centre sprite in the right panel (panel starts at x=232, width=268)
+            dest_x = 232 + (268 - bmp.width)  / 2
+            dest_y = 60  + (330 - bmp.height) / 2
+            overlay.blt(dest_x, dest_y, bmp,
+                        Rect.new(0, 0, bmp.width, bmp.height), 60)
+          end
+        end
+      end
+    rescue
+    end
+    fainted = @pokemon.battle_stat(:foes_fainted) rescue 0
+    damage  = @pokemon.battle_stat(:damage_dealt) rescue 0
     textpos = [
       [_INTL("PKMN fainted:"), 234, 90,  0, red,  redshadow],
-      [fainted.to_s,           450, 90,  1, gray, grayshadow],
-      [_INTL("Damage done:"),  234, 130, 0, red,  redshadow],
-      [damage.to_s,            450, 130, 1, gray, grayshadow],
+      [fainted.to_s,           490, 90,  1, gray, grayshadow],
+      [_INTL("Damage done:"),  234, 122, 0, red,  redshadow],
+      [damage.to_s,            490, 122, 1, gray, grayshadow],
     ]
     pbDrawTextPositions(overlay, textpos)
+    # Show kill info text
+    begin
+      if killed_by && (killed_by[:trainer] || killed_by[:pokemon])
+        trainer_name = killed_by[:trainer] || "???"
+        pokemon_name = killed_by[:pokemon] || "???"
+        move_name    = killed_by[:move]
+        memo = ""
+        memo += _INTL("<c3=F83820,E09890>Defeated by:\n")
+        memo += _INTL("<c3=F83820,E09890>Trainer: <c3=404040,B0B0B0>{1}\n", trainer_name)
+        memo += _INTL("<c3=F83820,E09890>PKMN: <c3=404040,B0B0B0>{1}\n", pokemon_name)
+        memo += _INTL("<c3=F83820,E09890>Move: <c3=404040,B0B0B0>{1}\n", move_name) if move_name
+        drawFormattedTextEx(overlay, 232, 165, 268, memo)
+      end
+    rescue
+    end
   end
 
   def drawPageSix

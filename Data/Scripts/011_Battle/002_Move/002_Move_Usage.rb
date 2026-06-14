@@ -349,6 +349,23 @@ class PokeBattle_Move
         user.pokemon.increment_battle_stat(:damage_dealt, damage)
         user.pokemon.increment_battle_stat(:foes_fainted) if target.fainted?
       end
+      # Record kill details on victim for nuzlocke tracker
+      if damage > 0 && target.fainted? && target.pokemon &&
+         target.pokemon.respond_to?(:record_killed_by)
+        begin
+          trainer_name  = @battle.pbGetOwnerName(user.index) rescue nil
+          pokemon_name  = (user.pokemon ? user.pokemon.name : nil) rescue nil
+          move_name     = @name rescue nil
+          killer_species = (user.pokemon ? user.pokemon.species : nil) rescue nil
+          target.pokemon.record_killed_by(
+            trainer: trainer_name,
+            pokemon: pokemon_name,
+            move:    move_name,
+            species: killer_species
+          )
+        rescue
+        end
+      end
     end
   end
 end
