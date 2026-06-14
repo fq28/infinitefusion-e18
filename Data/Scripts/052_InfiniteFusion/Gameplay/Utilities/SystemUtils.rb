@@ -70,6 +70,19 @@ def openUrlInBrowser(url = "")
   end
 end
 
+def pbGetFusionDexUrl(pkmn)
+  base = "https://infinitefusiondex.com/details/"
+  species_data = pkmn.species_data
+  if species_data.respond_to?(:get_head_species) && species_data.respond_to?(:get_body_species)
+    body_num = species_data.get_body_species
+    head_num = species_data.get_head_species
+    return base + "#{body_num}.#{head_num}"
+  else
+    dex_num = species_data.id_number
+    return base + dex_num.to_s
+  end
+end
+
 # todo: implement
 def getMappedKeyFor(internalKey)
 

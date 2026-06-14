@@ -1298,6 +1298,7 @@ class PokemonPartyScreen
       cmdLearnMove = -1
       cmdUnfuse = -1
       cmdFuse = -1
+      cmdViewDex = -1
 
 
       # Build the commands
@@ -1332,6 +1333,7 @@ class PokemonPartyScreen
         end
       end
 
+      commands[cmdViewDex = commands.length] = _INTL("View on Dex")
 
       commands[commands.length] = _INTL("Cancel")
       command = @scene.pbShowCommands(_INTL("Do what with {1}?", pkmn.name), commands)
@@ -1402,6 +1404,9 @@ class PokemonPartyScreen
         fuseFromParty(pkmn)
       elsif cmdUnfuse >= 0 && command == cmdUnfuse
         unfuseFromParty(pkmn,pkmnid)
+      elsif cmdViewDex >= 0 && command == cmdViewDex
+        url = pbGetFusionDexUrl(pkmn)
+        openUrlInBrowser(url)
       elsif cmdDebug >= 0 && command == cmdDebug
         pbPokemonDebug(pkmn, pkmnid)
       elsif cmdSwitch >= 0 && command == cmdSwitch
