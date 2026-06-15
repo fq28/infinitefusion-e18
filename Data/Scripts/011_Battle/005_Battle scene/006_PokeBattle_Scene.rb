@@ -57,7 +57,60 @@ class PokeBattle_Scene
       @sprites["dataBox_#{i}"].update(@frameCounter) if @sprites["dataBox_#{i}"]
       @sprites["pokemon_#{i}"].update(@frameCounter) if @sprites["pokemon_#{i}"]
       @sprites["shadow_#{i}"].update(@frameCounter) if @sprites["shadow_#{i}"]
+      pbUpdateFallenGhostAura(b, i)
     end
+  end
+
+  def pbUpdateFallenGhostAura(b, i)
+    ms     = @sprites["pokemon_#{i}"]
+    shadow = @sprites["shadow_#{i}"]
+    is_ghost = b && b.pokemon && b.pokemon.instance_variable_get(:@is_fallen_ghost)
+
+    if is_ghost && ms && ms.visible
+      ms.tone = Tone.new(-20, -10, 30, 0)
+      if shadow && !shadow.disposed?
+        shadow.z       = ms.z - 1
+        shadow.color   = Color.new(130, 0, 220, 220)
+        shadow.opacity = 255
+        shadow.visible = true
+      end
+      pbSpawnGhostParticle(ms) if @frameCounter % 6 == 0
+    else
+      ms.tone = Tone.new(0, 0, 0, 0) if ms && !ms.disposed?
+      if shadow && !shadow.disposed?
+        shadow.color = Color.new(0, 0, 0, 0)
+        shadow.z     = 3
+      end
+    end
+
+    pbUpdateGhostParticles
+  end
+
+  def pbSpawnGhostParticle(ms)
+    @ghost_particles ||= []
+    bmp = Bitmap.new(4, 4)
+    bmp.fill_rect(0, 0, 4, 4, Color.new(160, 0, 255))
+    s = Sprite.new(@viewport)
+    s.bitmap  = bmp
+    s.x       = ms.x + rand(40) - 20
+    s.y       = ms.y - rand(ms.src_rect.height / 2)
+    s.z       = ms.z + 1
+    s.opacity = 220
+    @ghost_particles << s
+  end
+
+  def pbUpdateGhostParticles
+    return unless @ghost_particles
+    @ghost_particles.each do |s|
+      next if s.disposed?
+      s.y       -= 1
+      s.opacity -= 6
+      if s.opacity <= 0
+        s.bitmap.dispose if s.bitmap && !s.bitmap.disposed?
+        s.dispose
+      end
+    end
+    @ghost_particles.reject! { |s| s.disposed? }
   end
 
   def pbRefresh
@@ -261,6 +314,14 @@ class PokeBattle_Scene
 
   def pbDisposeSprites
     pbDisposeSpriteHash(@sprites)
+    if @ghost_particles
+      @ghost_particles.each do |s|
+        next if s.disposed?
+        s.bitmap.dispose if s.bitmap && !s.bitmap.disposed?
+        s.dispose
+      end
+      @ghost_particles = nil
+    end
   end
 
   # Used by Ally Switch.

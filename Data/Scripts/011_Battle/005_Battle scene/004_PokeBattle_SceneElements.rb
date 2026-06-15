@@ -123,6 +123,7 @@ class PokemonDataBox < SpriteWrapper
     @numbersBitmap.dispose
     @hpBarBitmap.dispose
     @expBarBitmap.dispose
+    @ghostHPBitmap.dispose if @ghostHPBitmap
     @contents.dispose
     super
   end
@@ -338,10 +339,23 @@ class PokemonDataBox < SpriteWrapper
       w = ((w/2.0).round)*2
     end
     @hpBar.src_rect.width = w
-    hpColor = 0                                  # Green bar
-    hpColor = 1 if self.hp<=@battler.totalhp/2   # Yellow bar
-    hpColor = 2 if self.hp<=@battler.totalhp/4   # Red bar
-    @hpBar.src_rect.y = hpColor*@hpBarBitmap.height/3
+    if @battler.pokemon && @battler.pokemon.instance_variable_get(:@is_fallen_ghost)
+      barH = @hpBarBitmap.height/3
+      unless @ghostHPBitmap
+        @ghostHPBitmap = Bitmap.new(@hpBarBitmap.width, barH)
+        @ghostHPBitmap.fill_rect(0, 0, @hpBarBitmap.width, barH, Color.new(150, 0, 255))
+      end
+      @hpBar.bitmap = @ghostHPBitmap
+      @hpBar.src_rect.height = barH
+      @hpBar.src_rect.y = 0
+    else
+      @hpBar.bitmap = @hpBarBitmap.bitmap
+      @hpBar.src_rect.height = @hpBarBitmap.height/3
+      hpColor = 0                                  # Green bar
+      hpColor = 1 if self.hp<=@battler.totalhp/2   # Yellow bar
+      hpColor = 2 if self.hp<=@battler.totalhp/4   # Red bar
+      @hpBar.src_rect.y = hpColor*@hpBarBitmap.height/3
+    end
   end
 
   def refreshExp

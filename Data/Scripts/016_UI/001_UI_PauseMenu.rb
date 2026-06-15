@@ -113,6 +113,7 @@ class PokemonPauseMenu
     cmdDebug = -1
     cmdQuit = -1
     cmdEndGame = -1
+    cmdFallen = -1
     if $Trainer.has_pokedex && $Trainer.pokedex.accessible_dexes.length > 0
       commands[cmdPokedex = commands.length] = _INTL("Pokédex")
     end
@@ -142,6 +143,7 @@ class PokemonPauseMenu
     else
       commands[cmdSave = commands.length] = _INTL("Save") if $game_system && !$game_system.save_disabled
     end
+    commands[cmdFallen = commands.length] = _INTL("The Fallen")
     commands[cmdOption = commands.length] = _INTL("Options")
     commands[cmdDebug = commands.length] = _INTL("Debug") if $DEBUG
     commands[cmdEndGame = commands.length] = _INTL("Title screen")
@@ -253,6 +255,10 @@ class PokemonPauseMenu
         else
           pbShowMenu
         end
+      elsif cmdFallen >= 0 && command == cmdFallen
+        @scene.pbHideMenu
+        startGraveyardGauntlet
+        @scene.pbShowMenu
       elsif cmdOption >= 0 && command == cmdOption
         pbPlayDecisionSE
         pbFadeOutIn {
